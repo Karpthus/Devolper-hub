@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wake on LAN</title>
+</head>
+<body>
+    <h1>Wake-on-LAN Control Panel</h1>
+    
+    <h2>Wake a Device</h2>
+    <form id="wake-form">
+        <select name="mac">
+            {% for name, mac in devices.items() %}
+            <option value="{{ mac }}">{{ name }} ({{ mac }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Wake Up</button>
+    </form>
+
+    <h2>Check Device Status</h2>
+    <form id="ping-form">
+        <input type="text" name="host" placeholder="Enter IP address">
+        <button type="submit">Ping</button>
+    </form>
+
+    <p id="response"></p>
+
+    <script>
+        document.getElementById("wake-form").onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch("/wake", { method: "POST", body: formData });
+            const result = await response.json();
+            document.getElementById("response").innerText = result.message || result.error;
+        };
+
+        document.getElementById("ping-form").onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch("/ping", { method: "POST", body: formData });
+            const result = await response.json();
+            document.getElementById("response").innerText = result.status || result.error;
+        };
+    </script>
+</body>
+</html>

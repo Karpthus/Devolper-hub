@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Devices</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #4CAF50;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+        
+        .home-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .device-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .device-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .device-info {
+            flex-grow: 1;
+        }
+        
+        .device-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            cursor: pointer;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .add-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            flex-grow: 1;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        /* Notification styles */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 4px;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: opacity 0.5s;
+            opacity: 0;
+            z-index: 1000;
+        }
+        
+        .notification-error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification div -->
+    <div id="notification" style="opacity: 0;"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Manage Devices</h1>
+            <a href="/" class="home-button">Home</a>
+        </header>
+        
+        <div class="card">
+            <h2>Add New Device</h2>
+            <form id="add-device-form" class="add-form">
+                <div class="form-group">
+                    <label for="device-name" class="form-label">Device Name</label>
+                    <input type="text" id="device-name" class="form-input" placeholder="e.g., Home PC" required>
+                </div>
+                <div class="form-group">
+                    <label for="mac-address" class="form-label">MAC Address</label>
+                    <input type="text" id="mac-address" class="form-input" placeholder="e.g., 00:11:22:33:44:55" required>
+                </div>
+                <button type="submit" class="btn btn-success">Add Device</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Your Devices</h2>
+            <ul class="device-list">
+                {% for name, mac in devices %}
+                <li class="device-item">
+                    <div class="device-info">
+                        <strong>{{ name }}</strong>
+                        <div>{{ mac }}</div>
+                    </div>
+                    <div class="device-actions">
+                        <button class="btn btn-danger" onclick="removeDevice('{{ mac }}')">Remove</button>
+                    </div>
+                </li>
+                {% endfor %}
+                
+                {% if not devices %}
+                <li class="device-item">No devices added yet.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Notification function
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            
+            if (isError) {
+                notification.classList.add('notification-error');
+            } else {
+                notification.classList.remove('notification-error');
+            }
+            
+            // Show notification
+            notification.style.opacity = '1';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 3000);
+        }
+        
+        document.getElementById("add-device-form").onsubmit = async function(event) {
+            event.preventDefault();
+            let name = document.getElementById("device-name").value;
+            let mac = document.getElementById("mac-address").value;
+            
+            try {
+                let response = await fetch("/add_device", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: name, mac_address: mac })
+                });
+                
+                let result = await response.json();
+                
+                if (result.error) {
+                    showNotification(result.error, true);
+                } else {
+                    showNotification(result.message || "Device added successfully");
+                    document.getElementById("device-name").value = "";
+                    document.getElementById("mac-address").value = "";
+                    location.reload();
+                }
+            } catch (error) {
+                showNotification("Failed to add device", true);
+            }
+        };
+        
+        async function removeDevice(mac) {
+            try {
+                let response = await fetch("/remove_device", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mac_address: mac })
+                });
+                
+                let result = await response.json();
+                
+                if (result.error) {
+                    showNotification(result.error, true);
+                } else {
+                    showNotification(result.message || "Device removed");
+                    location.reload();
+                }
+            } catch (error) {
+                showNotification("Failed to remove device", true);
+            }
+        }
+    </script>
+</body>
+</html>

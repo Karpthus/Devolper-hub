@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        /* Notification styles */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: opacity 0.5s;
+            opacity: 0;
+            z-index: 1000;
+        }
+        .notification-error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Notification div -->
+        <div id="notification" style="opacity: 0;"></div>
+        
+        <h1>Network Scanner</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between">
+                            <h5>Discovered Devices</h5>
+                            <div>
+                                <button id="scanBtn" class="btn btn-primary">Scan Network</button>
+                                <a href="/" class="btn btn-secondary ms-2">Back to Devices</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Scanning network... This may take a minute.</p>
+                        </div>
+                        <div id="results">
+                            <p>Click "Scan Network" to discover devices on your local network.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Notification function
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            
+            if (isError) {
+                notification.classList.add('notification-error');
+            } else {
+                notification.classList.remove('notification-error');
+            }
+            
+            // Show notification
+            notification.style.opacity = '1';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 3000);
+        }
+        
+        $(document).ready(function() {
+            $('#scanBtn').click(function() {
+                // Show loading spinner
+                $('#loading').removeClass('d-none');
+                $('#results').html('');
+                
+                // Make API request to scan network
+                $.ajax({
+                    url: '/api/scan',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    success: function(response) {
+                        // Hide loading spinner
+                        $('#loading').addClass('d-none');
+                        
+                        if (response.devices && response.devices.length > 0) {
+                            // Create table for results
+                            let html = `
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Hostname</th>
+                                            <th>IP Address</th>
+                                            <th>MAC Address</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                            
+                            // Add each device to the table
+                            response.devices.forEach(function(device) {
+                                html += `
+                                    <tr>
+                                        <td>${device.hostname}</td>
+                                        <td>${device.ip}</td>
+                                        <td>${device.mac}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success add-device" 
+                                                    data-mac="${device.mac}" 
+                                                    data-hostname="${device.hostname}">
+                                                Add to WOL
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            html += `
+                                    </tbody>
+                                </table>
+                            `;
+                            
+                            $('#results').html(html);
+                            
+                            // Add event listener for adding devices
+                            $('.add-device').click(function() {
+                                const mac = $(this).data('mac');
+                                const hostname = $(this).data('hostname');
+                                
+                                // Add device to database
+                                $.ajax({
+                                    url: '/add_device',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({
+                                        name: hostname,
+                                        mac_address: mac
+                                    }),
+                                    success: function(response) {
+                                        showNotification(response.message);
+                                        $(this).text('Added').prop('disabled', true).removeClass('btn-success').addClass('btn-secondary');
+                                    },
+                                    error: function(xhr) {
+                                        showNotification(xhr.responseJSON.error || 'Failed to add device', true);
+                                    }
+                                });
+                            });
+                        } else {
+                            $('#results').html('<p>No devices found on the network.</p>');
+                        }
+                    },
+                    error: function(xhr) {
+                        // Hide loading spinner
+                        $('#loading').addClass('d-none');
+                        $('#results').html('<p class="text-danger">Error scanning network: ' + 
+                                          (xhr.responseJSON?.error || 'Unknown error') + '</p>');
+                        showNotification('Error scanning network', true);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

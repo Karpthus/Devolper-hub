@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSH Client</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .terminal {
+            background-color: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+            font-size: 14px; /* Default font size */
+        }
+        
+        #ssh-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #ssh-form input,
+        #ssh-form select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        #ssh-form button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        #ssh-form button:hover {
+            background-color: #45a049;
+        }
+        
+        .command-input {
+            width: 85%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .send-command {
+            width: 15%;
+            padding: 8px 0;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .send-command:hover {
+            background-color: #0b7dda;
+        }
+        
+        .device-selector {
+            margin-bottom: 20px;
+        }
+        
+        .terminal-toolbar {
+            background-color: #333;
+            padding: 5px 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .terminal-toolbar button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Tabs styling */
+        .tabs {
+            display: flex;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ccc;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .tab-button {
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 15px;
+            transition: 0.3s;
+            font-size: 14px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+        
+        .tab-button.active {
+            background-color: #ccc;
+            font-weight: bold;
+        }
+        
+        .tab-button .close-tab {
+            margin-left: 10px;
+            color: #888;
+            font-size: 16px;
+        }
+        
+        .tab-button .close-tab:hover {
+            color: #f44336;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Add tab button */
+        .add-tab {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 15px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        
+        .add-tab:hover {
+            background-color: #45a049;
+        }
+        
+        /* Command history styling */
+        .command-history {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: absolute;
+            width: 85%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .command-history div {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .command-history div:hover {
+            background-color: #f1f1f1;
+        }
+        
+        /* Customization panel */
+        .customization-panel {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .customization-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .customization-panel label {
+            display: inline-block;
+            width: 150px;
+            margin-bottom: 10px;
+        }
+        
+        .customization-panel select,
+        .customization-panel input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 150px;
+        }
+        
+        /* Theme presets */
+        .theme-preset {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        .theme-dark {
+            background-color: #000;
+            border-color: #333;
+        }
+        
+        .theme-light {
+            background-color: #fff;
+            border-color: #ccc;
+        }
+        
+        .theme-matrix {
+            background-color: #000;
+            border-color: #0f0;
+            position: relative;
+        }
+        
+        .theme-matrix::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(transparent, #0f0);
+            opacity: 0.3;
+        }
+        
+        .theme-solarized {
+            background-color: #002b36;
+            border-color: #839496;
+        }
+        
+        /* Toggle button for customization panel */
+        #toggle-custom {
+            background-color: #607d8b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        #toggle-custom:hover {
+            background-color: #546e7a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SSH Client</h1>
+        
+        <div class="device-selector">
+            <label for="device-select">Select Device:</label>
+            <select id="device-select">
+                <option value="">-- Manual Connection --</option>
+                {% for device in devices %}
+                <option value="{{ device.mac_address }}">{{ device.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div id="connection-form">
+            <h2>Connect to SSH Server</h2>
+            <form id="ssh-form">
+                <input type="text" id="ssh-host" placeholder="Host/IP Address" required>
+                <input type="number" id="ssh-port" placeholder="Port" value="22" required>
+                <input type="text" id="ssh-username" placeholder="Username" required>
+                <input type="password" id="ssh-password" placeholder="Password">
+                <button type="submit" id="connect-btn">Connect</button>
+            </form>
+        </div>
+        
+        <div id="terminal-tabs" class="hidden">
+            <!-- Terminal customization panel -->
+            <div id="customization-panel" class="customization-panel hidden">
+                <h3>Terminal Customization</h3>
+                <div>
+                    <label for="font-size">Font Size:</label>
+                    <input type="number" id="font-size" min="8" max="24" value="14">
+                </div>
+                <div>
+                    <label for="color-scheme">Color Scheme:</label>
+                    <select id="color-scheme">
+                        <option value="default">Default (Green on Black)</option>
+                        <option value="light">Light (Black on White)</option>
+                        <option value="matrix">Matrix</option>
+                        <option value="solarized">Solarized Dark</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div id="custom-colors" class="hidden">
+                    <div>
+                        <label for="bg-color">Background Color:</label>
+                        <input type="color" id="bg-color" value="#000000">
+                    </div>
+                    <div>
+                        <label for="text-color">Text Color:</label>
+                        <input type="color" id="text-color" value="#00ff00">
+                    </div>
+                </div>
+                <div>
+                    <label>Theme Presets:</label>
+                    <span class="theme-preset theme-dark" data-bg="#000000" data-text="#00ff00" title="Default"></span>
+                    <span class="theme-preset theme-light" data-bg="#ffffff" data-text="#000000" title="Light"></span>
+                    <span class="theme-preset theme-matrix" data-bg="#000000" data-text="#00ff00" title="Matrix"></span>
+                    <span class="theme-preset theme-solarized" data-bg="#002b36" data-text="#839496" title="Solarized Dark"></span>
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs">
+                <!-- Tab buttons will be added here dynamically -->
+                <button class="add-tab" id="new-tab-button">+</button>
+            </div>
+            
+            <!-- Tab content containers will be added here dynamically -->
+        </div>
+        
+        <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    
+    <!-- Tab template (hidden) -->
+    <template id="tab-template">
+        <div class="tab-content">
+            <div class="terminal-toolbar">
+                <div>
+                    <span class="connection-info">Connected to: <span class="connection-host"></span></span>
+                    <button class="toggle-custom" id="toggle-custom">Customize</button>
+                </div>
+                <div>
+                    <button class="toggle-history">History</button>
+                    <button class="disconnect-btn">Disconnect</button>
+                </div>
+            </div>
+            <div class="terminal"></div>
+            <div class="command-bar">
+                <input type="text" class="command-input" placeholder="Enter command">
+                <button class="send-command">Send</button>
+            </div>
+            <div class="command-history"></div>
+        </div>
+    </template>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const connectionForm = document.getElementById('connection-form');
+            const terminalTabs = document.getElementById('terminal-tabs');
+            const deviceSelect = document.getElementById('device-select');
+            const newTabButton = document.getElementById('new-tab-button');
+            const tabsContainer = document.querySelector('.tabs');
+            const tabTemplate = document.getElementById('tab-template');
+            const customizationPanel = document.getElementById('customization-panel');
+            
+            let socket = io('/ssh');
+            let activeTab = null;
+            let tabCounter = 0;
+            let tabs = {};
+            
+            // Show customization panel toggle
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('toggle-custom')) {
+                    customizationPanel.classList.toggle('hidden');
+                }
+            });
+            
+            // Listen for terminal output
+            socket.on('ssh_output', function(data) {
+                const tab = tabs[data.session_id];
+                if (tab) {
+                    appendToTerminal(tab.terminal, data.data);
+                }
+            });
+            
+            // Listen for errors
+            socket.on('ssh_error', function(data) {
+                const tab = tabs[data.session_id];
+                if (tab) {
+                    appendToTerminal(tab.terminal, `\n[ERROR] ${data.error}\n`, 'red');
+                }
+            });
+            
+            // Listen for timeout
+            socket.on('ssh_timeout', function(data) {
+                const tab = tabs[data.session_id];
+                if (tab) {
+                    appendToTerminal(tab.terminal, `\n[SYSTEM] ${data.message}\n`, 'orange');
+                    disconnectTab(data.session_id);
+                }
+            });
+            
+            // Handle device selection
+            deviceSelect.addEventListener('change', function() {
+                const selectedDevice = this.value;
+                if (selectedDevice) {
+                    // Fetch device details from your API
+                    fetch(`/api/device/${selectedDevice}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.ip_address) {
+                                document.getElementById('ssh-host').value = data.ip_address;
+                            }
+                            if (data.ssh_username) {
+                                document.getElementById('ssh-username').value = data.ssh_username;
+                            }
+                            if (data.ssh_port) {
+                                document.getElementById('ssh-port').value = data.ssh_port;
+                            }
+                        })
+                        .catch(error => console.error('Error fetching device info:', error));
+                }
+            });
+            
+            // Connect form submission
+            document.getElementById('ssh-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const host = document.getElementById('ssh-host').value;
+                const port = document.getElementById('ssh-port').value;
+                const username = document.getElementById('ssh-username').value;
+                const password = document.getElementById('ssh-password').value;
+                
+                createNewTab(host, port, username, password);
+            });
+            
+            // Create new tab button
+            newTabButton.addEventListener('click', function() {
+                connectionForm.classList.remove('hidden');
+                terminalTabs.classList.remove('hidden');
+            });
+            
+            // Font size change
+            document.getElementById('font-size').addEventListener('change', function() {
+                const fontSize = this.value;
+                document.querySelectorAll('.terminal').forEach(term => {
+                    term.style.fontSize = `${fontSize}px`;
+                });
+            });
+            
+            // Color scheme change
+            document.getElementById('color-scheme').addEventListener('change', function() {
+                const scheme = this.value;
+                const customColors = document.getElementById('custom-colors');
+                
+                if (scheme === 'custom') {
+                    customColors.classList.remove('hidden');
+                    applyCustomColors();
+                } else {
+                    customColors.classList.add('hidden');
+                    applyColorScheme(scheme);
+                }
+            });
+            
+            // Custom color changes
+            document.getElementById('bg-color').addEventListener('input', applyCustomColors);
+            document.getElementById('text-color').addEventListener('input', applyCustomColors);
+            
+            // Theme presets
+            document.querySelectorAll('.theme-preset').forEach(preset => {
+                preset.addEventListener('click', function() {
+                    const bgColor = this.getAttribute('data-bg');
+                    const textColor = this.getAttribute('data-text');
+                    
+                    document.getElementById('bg-color').value = bgColor;
+                    document.getElementById('text-color').value = textColor;
+                    
+                    document.getElementById('color-scheme').value = 'custom';
+                    document.getElementById('custom-colors').classList.remove('hidden');
+                    
+                    applyCustomColors();
+                });
+            });
+            
+            // Create a new tab with connection information
+            function createNewTab(host, port, username, password) {
+                tabCounter++;
+                const tabId = `tab-${tabCounter}`;
+                const tabName = `${username}@${host}`;
+                
+                // Create tab button
+                const tabButton = document.createElement('button');
+                tabButton.className = 'tab-button';
+                tabButton.setAttribute('data-tab', tabId);
+                tabButton.innerHTML = `
+                    <span>${tabName}</span>
+                    <span class="close-tab">&times;</span>
+                `;
+                tabsContainer.insertBefore(tabButton, newTabButton);
+                
+                // Create tab content
+                const tabContent = document.importNode(tabTemplate.content, true).querySelector('.tab-content');
+                tabContent.id = tabId;
+                tabContent.querySelector('.connection-host').textContent = `${username}@${host}:${port}`;
+                terminalTabs.appendChild(tabContent);
+                
+                // Set up tab references
+                const terminal = tabContent.querySelector('.terminal');
+                const commandInput = tabContent.querySelector('.command-input');
+                const commandHistory = tabContent.querySelector('.command-history');
+                
+                // Initialize command history array
+                const history = [];
+                let historyIndex = -1;
+                
+                // Store tab info
+                tabs[tabId] = {
+                    id: tabId,
+                    button: tabButton,
+                    content: tabContent,
+                    terminal: terminal,
+                    commandInput: commandInput,
+                    sessionId: null,
+                    history: history,
+                    historyIndex: historyIndex,
+                    commandHistory: commandHistory
+                };
+                
+                // Set up event listeners for the tab
+                tabButton.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('close-tab')) {
+                        activateTab(tabId);
+                    }
+                });
+                
+                tabButton.querySelector('.close-tab').addEventListener('click', function() {
+                    closeTab(tabId);
+                });
+                
+                // Connect to SSH server
+                connectToSSH(tabId, host, port, username, password);
+                
+                // Command input handling
+                const sendCommandBtn = tabContent.querySelector('.send-command');
+                
+                sendCommandBtn.addEventListener('click', function() {
+                    sendCommand(tabId);
+                });
+                
+                commandInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        sendCommand(tabId);
+                    } else if (e.key === 'ArrowUp') {
+                        navigateHistory(tabId, 'up');
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowDown') {
+                        navigateHistory(tabId, 'down');
+                        e.preventDefault();
+                    }
+                });
+                
+                // Toggle command history
+                tabContent.querySelector('.toggle-history').addEventListener('click', function() {
+                    toggleCommandHistory(tabId);
+                });
+                
+                // Handle disconnect button
+                tabContent.querySelector('.disconnect-btn').addEventListener('click', function() {
+                    disconnectTab(tabId);
+                });
+                
+                // Show terminal tabs UI and activate the new tab
+                terminalTabs.classList.remove('hidden');
+                connectionForm.classList.add('hidden');
+                activateTab(tabId);
+                
+                return tabId;
+            }
+            
+            // Activate a tab
+            function activateTab(tabId) {
+                // Deactivate all tabs
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Activate selected tab
+                const tab = tabs[tabId];
+                if (tab) {
+                    tab.button.classList.add('active');
+                    tab.content.classList.add('active');
+                    tab.commandInput.focus();
+                    activeTab = tabId;
+                }
+            }
+            
+            // Close a tab
+            function closeTab(tabId) {
+                const tab = tabs[tabId];
+                if (!tab) return;
+                
+                // Disconnect if connected
+                if (tab.sessionId) {
+                    disconnectFromSSH(tab.sessionId);
+                }
+                
+                // Remove DOM elements
+                tab.button.remove();
+                tab.content.remove();
+                
+                // Remove from tabs object
+                delete tabs[tabId];
+                
+                // If this was the active tab, activate another one or show the connection form
+                if (activeTab === tabId) {
+                    const remainingTabs = Object.keys(tabs);
+                    if (remainingTabs.length > 0) {
+                        activateTab(remainingTabs[0]);
+                    } else {
+                        connectionForm.classList.remove('hidden');
+                        terminalTabs.classList.add('hidden');
+                        activeTab = null;
+                    }
+                }
+            }
+            
+            // Disconnect a tab
+            function disconnectTab(tabId) {
+                const tab = tabs[tabId];
+                if (!tab || !tab.sessionId) return;
+                
+                disconnectFromSSH(tab.sessionId);
+                appendToTerminal(tab.terminal, '\n[SYSTEM] Disconnected\n');
+                tab.sessionId = null;
+                
+                // Update button text to show disconnected state
+                const tabName = tab.button.querySelector('span').textContent;
+                tab.button.querySelector('span').textContent = `${tabName} (Disconnected)`;
+            }
+            
+            // Connect to SSH server
+            function connectToSSH(tabId, host, port, username, password) {
+                const tab = tabs[tabId];
+                if (!tab) return;
+                
+                // Clear terminal
+                tab.terminal.innerHTML = '';
+                
+                // Show connecting message
+                appendToTerminal(tab.terminal, `Connecting to ${host}:${port} as ${username}...\n`);
+                
+                // Send connection request
+                fetch('/api/ssh/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        host: host,
+                        port: port,
+                        username: username,
+                        password: password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        tab.sessionId = data.session_id;
+                        appendToTerminal(tab.terminal, `${data.message}\n`);
+                    } else {
+                        appendToTerminal(tab.terminal, `Connection failed: ${data.message}\n`, 'red');
+                    }
+                })
+                .catch(error => {
+                    appendToTerminal(tab.terminal, `Error: ${error}\n`, 'red');
+                });
+            }
+            
+            // Disconnect from SSH server
+            function disconnectFromSSH(sessionId) {
+                fetch('/api/ssh/disconnect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId
+                    })
+                })
+                .catch(error => {
+                    console.error('Error disconnecting:', error);
+                });
+            }
+            
+            // Send command to SSH server
+            function sendCommand(tabId) {
+                const tab = tabs[tabId];
+                if (!tab || !tab.sessionId) return;
+                
+                const command = tab.commandInput.value;
+                if (!command) return;
+                
+                // Add to command history
+                if (tab.history.indexOf(command) === -1 || tab.history[tab.history.length - 1] !== command) {
+                    tab.history.push(command);
+                }
+                tab.historyIndex = tab.history.length;
+                
+                // Send command to server
+                fetch('/api/ssh/command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: tab.sessionId,
+                        command: command
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        appendToTerminal(tab.terminal, `Command error: ${data.message}\n`, 'red');
+                    }
+                })
+                .catch(error => {
+                    appendToTerminal(tab.terminal, `Error: ${error}\n`, 'red');
+                });
+                
+                // Clear input
+                tab.commandInput.value = '';
+            }
+            
+            // Navigate command history
+            function navigateHistory(tabId, direction) {
+                const tab = tabs[tabId];
+                if (!tab || tab.history.length === 0) return;
+                
+                if (direction === 'up') {
+                    if (tab.historyIndex > 0) {
+                        tab.historyIndex--;
+                        tab.commandInput.value = tab.history[tab.historyIndex];
+                    }
+                } else if (direction === 'down') {
+                    if (tab.historyIndex < tab.history.length - 1) {
+                        tab.historyIndex++;
+                        tab.commandInput.value = tab.history[tab.historyIndex];
+                    } else {
+                        tab.historyIndex = tab.history.length;
+                        tab.commandInput.value = '';
+                    }
+                }
+            }
+            
+            // Toggle command history display
+            function toggleCommandHistory(tabId) {
+                const tab = tabs[tabId];
+                if (!tab || tab.history.length === 0) return;
+                
+                const historyElement = tab.commandHistory;
+                
+                if (historyElement.style.display === 'block') {
+                    historyElement.style.display = 'none';
+                    return;
+                }
+                
+                // Clear and populate command history
+                historyElement.innerHTML = '';
+                tab.history.forEach((cmd, index) => {
+                    const div = document.createElement('div');
+                    div.textContent = cmd;
+                    div.addEventListener('click', function() {
+                        tab.commandInput.value = cmd;
+                        historyElement.style.display = 'none';
+                        tab.commandInput.focus();
+                    });
+                    historyElement.appendChild(div);
+                });
+                
+                historyElement.style.display = 'block';
+                
+                // Click outside to close
+                const closeHistory = (e) => {
+                    if (!historyElement.contains(e.target) && e.target !== tab.content.querySelector('.toggle-history')) {
+                        historyElement.style.display = 'none';
+                        document.removeEventListener('click', closeHistory);
+                    }
+                };
+                
+                // Add with slight delay to avoid immediate triggering
+                setTimeout(() => {
+                    document.addEventListener('click', closeHistory);
+                }, 100);
+            }
+            
+            // Apply color scheme
+            function applyColorScheme(scheme) {
+                let bgColor, textColor;
+                
+                switch(scheme) {
+                    case 'light':
+                        bgColor = '#ffffff';
+                        textColor = '#000000';
+                        break;
+                    case 'matrix':
+                        bgColor = '#000000';
+                        textColor = '#00ff00';
+                        break;
+                    case 'solarized':
+                        bgColor = '#002b36';
+                        textColor = '#839496';
+                        break;
+                    default: // default/green
+                        bgColor = '#000000';
+                        textColor = '#00ff00';
+                }
+                
+                document.querySelectorAll('.terminal').forEach(term => {
+                    term.style.backgroundColor = bgColor;
+                    term.style.color = textColor;
+                });
+            }
+            
+            // Apply custom colors
+            function applyCustomColors() {
+                const bgColor = document.getElementById('bg-color').value;
+                const textColor = document.getElementById('text-color').value;
+                
+                document.querySelectorAll('.terminal').forEach(term => {
+                    term.style.backgroundColor = bgColor;
+                    term.style.color = textColor;
+                });
+            }
+            
+            // Helper to append text to terminal
+            function appendToTerminal(terminal, text, color = null) {
+                const span = document.createElement('span');
+                span.textContent = text;
+                if (color) {
+                    span.style.color = color;
+                }
+                terminal.appendChild(span);
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

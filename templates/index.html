@@ -4,223 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Management Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
     <style>
-        :root {
-            --primary-color: #2196F3;
-            --secondary-color: #4CAF50;
-            --accent-color: #FF9800;
-            --background-color: #f5f5f5;
-            --card-color: #ffffff;
-            --text-color: #333333;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--background-color);
-            margin: 0;
-            padding: 0;
-            color: var(--text-color);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #777;
-            margin-bottom: 30px;
-        }
-        
-        .tiles-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .tile {
-            background-color: var(--card-color);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            position: relative;
-            height: 200px;
-        }
-        
-        .tile:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        
-        .tile-icon {
-            height: 70px;
-            background-color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-        }
-        
-        .tile-icon.scan {
-            background-color: var(--primary-color);
-        }
-        
-        .tile-icon.manage {
-            background-color: var(--secondary-color);
-        }
-        
-        .tile-icon.wake {
-            background-color: var(--accent-color);
-        }
-        
-        .tile-content {
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .tile-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .tile-description {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-        
-        /* Notification styles */
-        #notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px;
-            background-color: var(--secondary-color);
-            color: white;
-            border-radius: 4px;
-            max-width: 300px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: opacity 0.5s;
-            opacity: 0;
-            z-index: 1000;
-        }
-        
-        .notification-error {
-            background-color: #f44336;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .tiles-container {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            .container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+                gap: 20px;
+                max-width: 83rem !important;
             }
-        }
-        
-        @media (max-width: 480px) {
-            .tiles-container {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
-<body>
-    <!-- Notification div -->
-    <div id="notification" style="opacity: 0;"></div>
-    
-    <div class="container">
+
+<body class="bg-gray-50 dark:bg-gray-900">
+    <div>
         <header>
-            <h1>Hub</h1>
-            <div class="subtitle"></div>
+            <nav class="bg-white border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+                <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+                    <a href="index.html" class="flex items-center">
+                        <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">WoL</span>
+                    </a>
+                    <div class="flex items-center lg:order-2">
+                        <button data-collapse-toggle="mobile-menu-2" type="button" class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu-2" aria-expanded="false">
+                            <span class="sr-only">Open main menu</span>
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                            <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </div>
+                    <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
+                        <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+                            <li>
+                                <a href="scan.html" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Scan</a>
+                            </li>
+                            <li>
+                                <a href="devices.html" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Manage</a>
+                            </li>
+                            <li>
+                                <a href="wake-dashboard.html" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Wake</a>
+                            </li>
+                            <li>
+                                <a href="ssh_client.html" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Client</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
         </header>
-        
-        <div class="tiles-container">
-            <!-- Scan Network Tile -->
-            <a href="/scan">
-                <div class="tile">
-                    <div class="tile-icon scan">
-                        <i>🔍</i>
+
+        <div class="container mx-auto p-5">
+            <!-- Tile Template -->
+            <a href="scan.html" class="block transform transition duration-300 hover:scale-105">
+                <div class="w-full bg-white rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 p-4 hover:shadow-xl hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center justify-center h-16 bg-blue-500 rounded-md hover:bg-blue-600 transition duration-300">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+                        </svg>
                     </div>
-                    <div class="tile-content">
-                        <div class="tile-title">Scan Network</div>
-                        <div class="tile-description">Discover devices on your local network</div>
-                    </div>
-                </div>
-            </a>
-            
-            <!-- Manage Devices Tile -->
-            <a href="/devices">
-                <div class="tile">
-                    <div class="tile-icon manage">
-                        <i>📋</i>
-                    </div>
-                    <div class="tile-content">
-                        <div class="tile-title">Manage Devices</div>
-                        <div class="tile-description">Add, edit, or remove your devices</div>
-                    </div>
-                </div>
-            </a>
-            
-            <!-- Wake Devices Tile -->
-            <a href="/wake-dashboard">
-                <div class="tile">
-                    <div class="tile-icon wake">
-                        <i>⚡</i>
-                    </div>
-                    <div class="tile-content">
-                        <div class="tile-title">Wake Devices</div>
-                        <div class="tile-description">Power on your devices remotely</div>
+                    <div class="text-center mt-4">
+                        <h3 class="text-lg dark:text-white font-semibold">Scan Network</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Discover devices on your local network</p>
                     </div>
                 </div>
             </a>
 
-            <!-- SSH Client Tile -->
-            <a href="/ssh">
-                <div class="tile">
-                    <div class="tile-icon ssh">
-                        <i>🔑</i>
+            <a href="devices.html" class="block transform transition duration-300 hover:scale-105">
+                <div class="w-full bg-white rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 p-4 hover:shadow-xl hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center justify-center h-16 bg-green-500 rounded-md hover:bg-green-600 transition duration-300">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 5h6m-6 4h6M10 3v4h4V3h-4Z"/>
+                        </svg>
                     </div>
-                    <div class="tile-content">
-                        <div class="tile-title">SSH Client</div>
-                        <div class="tile-description">Connect to your devices via SSH</div>
+                    <div class="text-center mt-4">
+                        <h3 class="text-lg dark:text-white font-semibold">Manage Devices</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Add, edit, or remove your devices</p>
                     </div>
                 </div>
             </a>
 
-            <!-- Template for future additions -->
-            <!-- 
-            <a href="/your-new-page">
-                <div class="tile">
-                    <div class="tile-icon" style="background-color: #YOUR_COLOR_HERE;">
-                        <i>🔧</i>
+            <a href="wake-dashboard.html" class="block transform transition duration-300 hover:scale-105">
+                <div class="w-full bg-white rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 p-4 hover:shadow-xl hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center justify-center h-16 bg-orange-500 rounded-md hover:bg-orange-600 transition duration-300">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10.827 5.465-.435-2.324m.435 2.324a5.338 5.338 0 0 1 6.033 4.333l.331 1.769c.44 2.345 2.383 2.588 2.6 3.761.11.586.22 1.171-.31 1.271l-12.7 2.377c-.529.099-.639-.488-.749-1.074C5.813 16.73 7.538 15.8 7.1 13.455c-.219-1.169.218 1.162-.33-1.769a5.338 5.338 0 0 1 4.058-6.221Z"/>
+                        </svg>
                     </div>
-                    <div class="tile-content">
-                        <div class="tile-title">Your New Feature</div>
-                        <div class="tile-description">Description of your new feature</div>
+                    <div class="text-center mt-4">
+                        <h3 class="text-lg dark:text-white font-semibold">Wake Devices</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Power on your devices remotely</p>
                     </div>
                 </div>
             </a>
-            -->
+
+            <a href="ssh_client.html" class="block transform transition duration-300 hover:scale-105">
+                <div class="w-full bg-white rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 p-4 hover:shadow-xl hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center justify-center h-16 bg-gray-700 rounded-md hover:bg-gray-800 transition duration-300">
+                        <svg class="w-8 h-8 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M6.94318 11h-.85227l.96023-2.90909h1.07954L9.09091 11h-.85227l-.63637-2.10795h-.02272L6.94318 11Zm-.15909-1.14773h1.60227v.59093H6.78409v-.59093ZM9.37109 11V8.09091h1.25571c.2159 0 .4048.04261.5667.12784.162.08523.2879.20502.3779.35937.0899.15436.1349.33476.1349.5412 0 .20833-.0464.38873-.1392.54119-.0918.15246-.2211.26989-.3878.35229-.1657.0824-.3593.1236-.5809.1236h-.75003v-.61367h.59093c.0928 0 .1719-.0161.2372-.0483.0663-.03314.1169-.08002.152-.14062.036-.06061.054-.13211.054-.21449 0-.08334-.018-.15436-.054-.21307-.0351-.05966-.0857-.10511-.152-.13636-.0653-.0322-.1444-.0483-.2372-.0483h-.2784V11h-.78981Zm3.41481-2.90909V11h-.7898V8.09091h.7898Z"/>
+                            <path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M8.31818 2c-.55228 0-1 .44772-1 1v.72878c-.06079.0236-.12113.04809-.18098.07346l-.55228-.53789c-.38828-.37817-1.00715-.37817-1.39543 0L3.30923 5.09564c-.19327.18824-.30229.44659-.30229.71638 0 .26979.10902.52813.30229.71637l.52844.51468c-.01982.04526-.03911.0908-.05785.13662H3c-.55228 0-1 .44771-1 1v2.58981c0 .5523.44772 1 1 1h.77982c.01873.0458.03802.0914.05783.1366l-.52847.5147c-.19327.1883-.30228.4466-.30228.7164 0 .2698.10901.5281.30228.7164l1.88026 1.8313c.38828.3781 1.00715.3781 1.39544 0l.55228-.5379c.05987.0253.12021.0498.18102.0734v.7288c0 .5523.44772 1 1 1h2.65912c.5523 0 1-.4477 1-1v-.7288c.1316-.0511.2612-.1064.3883-.1657l.5435.2614v.4339c0 .5523.4477 1 1 1H14v.0625c0 .5523.4477 1 1 1h.0909v.0625c0 .5523.4477 1 1 1h.6844l.4952.4823c1.1648 1.1345 3.0214 1.1345 4.1863 0l.2409-.2347c.1961-.191.3053-.454.3022-.7277-.0031-.2737-.1183-.5342-.3187-.7207l-6.2162-5.7847c.0173-.0398.0342-.0798.0506-.12h.7799c.5522 0 1-.4477 1-1V8.17969c0-.55229-.4478-1-1-1h-.7799c-.0187-.04583-.038-.09139-.0578-.13666l.5284-.51464c.1933-.18824.3023-.44659.3023-.71638 0-.26979-.109-.52813-.3023-.71637l-1.8803-1.8313c-.3883-.37816-1.0071-.37816-1.3954 0l-.5523.53788c-.0598-.02536-.1201-.04985-.1809-.07344V3c0-.55228-.4477-1-1-1H8.31818Z"/>
+                        </svg>
+
+                    </div>
+                    <div class="text-center mt-4">
+                        <h3 class="text-lg dark:text-white font-semibold">SSH Client</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Connect to your devices via SSH</p>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
     

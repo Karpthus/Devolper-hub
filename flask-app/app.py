@@ -1,6 +1,8 @@
 import uuid
 from flask import Flask, render_template, request, jsonify
 import wakeonlan
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import os
 from database import get_device, init_db, add_device, get_devices, remove_device, update_device
 from WoL_function import ping, scan_network
@@ -8,13 +10,17 @@ from flask_socketio import SocketIO
 from ssh_client import SSHClient
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+CORS(app)
 socketio = SocketIO(app)
 
 # Initialize SSH client with SocketIO
 ssh_manager = SSHClient(socketio)
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "../laravel-app/database/database.sqlite")
 
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+db = SQLAlchemy(app)
 
 # Initialize the database
 init_db()
